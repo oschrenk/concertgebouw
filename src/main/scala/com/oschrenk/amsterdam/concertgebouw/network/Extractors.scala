@@ -6,7 +6,8 @@ import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model.Document
 import io.circe.generic.auto._
-import io.circe.jackson
+import io.circe.{Json, jackson}
+import io.circe.jackson.CirceJsonModule
 
 object Extractors extends LazyLogging {
 
@@ -83,6 +84,10 @@ object Extractors extends LazyLogging {
         val mapper = new ObjectMapper
         mapper.enable(JsonParser.Feature.ALLOW_COMMENTS)
         mapper.enable(JsonParser.Feature.ALLOW_TRAILING_COMMA)
+        mapper.registerModule(CirceJsonModule)
+        val jsonFactory: JsonFactory = new JsonFactory(mapper)
+        val parser = jsonFactory.createParser(rawSchema)
+        mapper.readValue(parser(rawSchema), classOf[StructuredData])
 
 
     val foo = jackson.decode[StructuredData](rawSchema)
