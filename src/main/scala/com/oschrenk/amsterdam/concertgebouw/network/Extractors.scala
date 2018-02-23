@@ -1,27 +1,20 @@
 package com.oschrenk.amsterdam.concertgebouw.network
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
 import com.typesafe.scalalogging.LazyLogging
-import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
-import net.ruippeixotog.scalascraper.dsl.DSL._
-import net.ruippeixotog.scalascraper.model.Document
-import io.circe.generic.auto._
-import io.circe.{Json, jackson}
-import io.circe.jackson.CirceJsonModule
 
 object Extractors extends LazyLogging {
 
   case class Concert(title: String, artist: String, path: String)
   case class ConcertDetails(start: String, end: String)
 
-  def concerts(document: Document): Seq[Concert] = {
+  def concerts(json: Json): Seq[Concert] = {
 
     val listSelector = s"main > div > div > section > div > section:nth-child(2) > div.flexblock.event-list.event-list--default > ul > li"
     val cells = document >> elementList(listSelector)
     cells.map { cell =>
       val linkSelector = "div > div.event-result__content > a"
       val metaSelector = "div > div > div.event-result__meta.event-meta"
-      val artistSelector = "div >  div.event-meta__artists--short"
+      val artistSelector = "div > div.event-meta__artists--short"
       val head = cell >> element(linkSelector)
       val meta = cell >> element(metaSelector)
       val artistShort = meta >> element(artistSelector)
@@ -79,16 +72,19 @@ object Extractors extends LazyLogging {
 //    </script>)
 
     val rawSchema = schema.toString.split("\n").drop(1).dropRight(1).mkString("\n")
+        println(rawSchema)
         import com.fasterxml.jackson.core.JsonParser
         import com.fasterxml.jackson.databind.ObjectMapper
         val mapper = new ObjectMapper
-        mapper.enable(JsonParser.Feature.ALLOW_COMMENTS)
-        mapper.enable(JsonParser.Feature.ALLOW_TRAILING_COMMA)
         mapper.registerModule(CirceJsonModule)
-        val jsonFactory: JsonFactory = new JsonFactory(mapper)
-        val parser = jsonFactory.createParser(rawSchema)
-        mapper.readValue(parser(rawSchema), classOf[StructuredData])
 
+        val jsonFactory: JsonFactory = new JsonFactory(mapper)
+        jsonFactory.enable(JsonParser.Feature.ALLOW_TRAILING_COMMA)
+
+        val parser = jsonFactory.createParser(rawSchema)
+        val sd = mapper.readValue(parser, classOf[Json])
+
+        println("AAAAh" + sd)
 
     val foo = jackson.decode[StructuredData](rawSchema)
     println("AAAAh" + foo)
