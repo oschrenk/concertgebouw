@@ -1,16 +1,15 @@
 package com.oschrenk.amsterdam.concertgebouw
 
-import com.oschrenk.amsterdam.concertgebouw.network.{Extractors, Network}
+import cats.effect.IO
+import org.http4s.client.{Client, blaze}
 
 object Concertgebouw extends App {
 
-  val network = new Network()
+  val client: Client[IO] = blaze.Http1Client[IO]().unsafeRunSync()
 
-  val concerts = network.lunchtimeConcerts()
-  val details = Extractors.concerts(concerts).take(1)
-    .map(_.path)
-    .map(network.concertDetails)
-    .map(Extractors.singleConcert)
-  println(details)
+  new Network(client).lunchtimeConcerts().unsafeRunSync().foreach( concert =>
+    println(concert)
+  )
 
+  client.shutdownNow()
 }
