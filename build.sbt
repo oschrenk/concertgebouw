@@ -25,6 +25,9 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 )
 
+resolvers += Resolver.bintrayRepo("oschrenk", "maven")
+libraryDependencies += "com.oschrenk.spacetime" %% "ical-scala" % "0.0.1"
+
 scalacOptions ++= Seq(
     "-target:jvm-1.8",
     "-deprecation",
