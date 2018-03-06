@@ -9,6 +9,7 @@ val CirceVersion = "0.9.1"
 
 libraryDependencies ++= Seq(
   "io.circe" %% "circe-core",
+  "io.circe" %% "circe-parser",
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-java8",
 ).map(_ % CirceVersion)
