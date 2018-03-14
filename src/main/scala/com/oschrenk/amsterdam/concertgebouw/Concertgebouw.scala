@@ -7,7 +7,7 @@ import java.time._
 import java.time.format.DateTimeFormatter
 
 import cats.effect.IO
-import ical.{Event, Writer}
+import icalendar.api.{EventBuilder, Writer}
 import org.http4s.client.{Client, blaze}
 
 object Concertgebouw extends App {
@@ -29,27 +29,27 @@ object Concertgebouw extends App {
       concerts.map{ concert =>
         val start = concert.event_start_date.atZone(zoneId)
         val end = concert.event_end_date.atZone(zoneId)
-        val title = {
-          val mainTitle = concert.title
-          mainTitle + "w/"+ concert.tag_musician.head
-        }
+        val title = concert.title + "w/ "+ concert.tag_musician.head
         val notes = {
           val instruments = concert.tag_instrument.map(_.mkString(",")).getOrElse("")
           val musicians = concert.tag_musician.mkString(",")
           musicians + "" + instruments
         }
-        Event.from(title, start, end, Some(notes))
+        (s"${start.toEpochSecond}-$title",
+        EventBuilder.default
+          .titled(title)
+          .starting(start)
+          .ending(end)
+          .notes(notes)
+          .at("Het Convertgebouw", "Concertgebouwplein 10, 1071 LN Amsterdam", 52.356319, 4.8791459)
+          .build)
       }
     } match {
       case Left(e) =>
         println(e)
       case Right(concerts) =>
-        concerts.foreach{ c =>
-          val filename = {
-            val epoch = c.events.head.dtstart.get.value.value.left.get.dt.toEpochSecond
-            val title = c.events.head.summary.get.value.text.toLowerCase()
-            s"$epoch-$title".replaceAll("[^a-zA-Z0-9.-]", "_") + ".ics"
-          }
+        concerts.foreach{ case (name, c) =>
+          val filename = name.replaceAll("[^a-zA-Z0-9.-]", "_") + ".ics"
           val homeDirectory = System.getProperty("user.home")
           val outputDirectory = new File(homeDirectory, "Downloads").getCanonicalPath
           val path = new File(outputDirectory, filename).toPath

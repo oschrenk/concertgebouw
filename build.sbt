@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
 )
 
 resolvers += Resolver.bintrayRepo("oschrenk", "maven")
-libraryDependencies += "com.oschrenk.spacetime" %% "ical-scala" % "0.0.2"
+libraryDependencies += "com.oschrenk.spacetime" %% "ical-scala" % "0.0.8"
 
 scalacOptions ++= Seq(
     "-target:jvm-1.8",
